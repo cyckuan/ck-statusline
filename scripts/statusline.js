@@ -83,6 +83,14 @@ function loadColors(theme) {
   }
 }
 
+function trafficColor(percent, c) {
+  const [t1, t2, t3] = c.ctxThresholds;
+  if (percent < t1) return c.ctxGreen;
+  if (percent < t2) return c.ctxYellow;
+  if (percent < t3) return c.ctxAmber;
+  return c.ctxRed;
+}
+
 function formatModelName(model) {
   if (!model) return '';
   const id = model.id || '';
@@ -375,8 +383,10 @@ function run() {
         const ratio = tokens.output > 0 ? Math.round(tokens.input / tokens.output) : '0';
         parts.push(`${c.tokLabel}cum${c.reset} ${c.tokValue}${formatTokens(cumulativeTotal)}${c.reset} ${c.tokLabel}ses${c.reset} ${c.tokValue}${formatTokens(sessionTotal)}${c.reset} ${c.tokLabel}i:o${c.reset} ${c.tokValue}${ratio}${c.reset}`);
       }
-      parts.push(`${c.cpuLabel}cpu${c.reset} ${c.cpuValue}${cpu}%${c.reset}`);
-      parts.push(`${c.memLabel}mem${c.reset} ${c.memValue}${mem.percent}% ${mem.usedGb}G${c.reset}`);
+      const cpuColor = trafficColor(cpu, c);
+      const memColor = trafficColor(mem.percent, c);
+      parts.push(`${c.cpuLabel}cpu${c.reset} ${cpuColor}${cpu}%${c.reset}`);
+      parts.push(`${c.memLabel}mem${c.reset} ${memColor}${mem.percent}% ${mem.usedGb}G${c.reset}`);
       parts.push(`${c.cwd}${dirName}${c.reset}`);
       if (branch) parts.push(`${c.branch}${branch}${c.reset}`);
       if (remote) parts.push(`${c.remote}${remote}${c.reset}`);
