@@ -258,6 +258,10 @@ Edit `config/layout.json` to control element ordering, display mode, and notific
 - **`verbose`** — show all elements in the configured order
 - **`compact`** — hide elements listed in `compact.exclude`
 
+Toggle mid-session with `/ccsl more` or `/ccsl less`.
+
+![Verbose vs Compact](assets/modes.png)
+
 ### Order
 
 Rearrange the `order` array to change the left-to-right position of elements. Remove an entry to hide it entirely.
