@@ -138,6 +138,77 @@ function isValidTranscriptPath(p) {
   return true;
 }
 
+const COST_PER_M = {
+  'haiku': { input: 0.80, output: 4.00, cacheWrite: 1.00, cacheRead: 0.08 },
+  'sonnet': { input: 3.00, output: 15.00, cacheWrite: 3.75, cacheRead: 0.30 },
+  'opus': { input: 15.00, output: 75.00, cacheWrite: 18.75, cacheRead: 1.50 },
+};
+
+function getDetailedTokens(transcriptPath) {
+  try {
+    if (!isValidTranscriptPath(transcriptPath) || !fs.existsSync(transcriptPath)) return null;
+    const content = fs.readFileSync(transcriptPath, 'utf8');
+    let input = 0, output = 0, cacheWrite = 0, cacheRead = 0;
+    const inRe = /"input_tokens":(\d+)/g;
+    const cwRe = /"cache_creation_input_tokens":(\d+)/g;
+    const crRe = /"cache_read_input_tokens":(\d+)/g;
+    const outRe = /"output_tokens":(\d+)/g;
+    let m;
+    while ((m = inRe.exec(content)) !== null) input += parseInt(m[1], 10);
+    while ((m = cwRe.exec(content)) !== null) cacheWrite += parseInt(m[1], 10);
+    while ((m = crRe.exec(content)) !== null) cacheRead += parseInt(m[1], 10);
+    while ((m = outRe.exec(content)) !== null) output += parseInt(m[1], 10);
+    return { input, output, cacheWrite, cacheRead };
+  } catch {
+    return null;
+  }
+}
+
+function estimateCost(detailedTokens, modelName) {
+  if (!detailedTokens) return 0;
+  const tier = Object.keys(COST_PER_M).find(k => modelName && modelName.includes(k)) || 'opus';
+  const rates = COST_PER_M[tier];
+  const { input, output, cacheWrite, cacheRead } = detailedTokens;
+  return (input * rates.input + cacheWrite * rates.cacheWrite + cacheRead * rates.cacheRead + output * rates.output) / 1_000_000;
+}
+
+function getSessionElapsed(transcriptPath) {
+  if (!isValidTranscriptPath(transcriptPath) || !fs.existsSync(transcriptPath)) return '';
+  try {
+    const fd = fs.openSync(transcriptPath, 'r');
+    const buf = Buffer.alloc(16384);
+    fs.readSync(fd, buf, 0, 16384, 0);
+    fs.closeSync(fd);
+    const chunk = buf.toString('utf8');
+    const match = chunk.match(/"timestamp":"([^"]+)"/);
+    if (!match) return '';
+    const startMs = new Date(match[1]).getTime();
+    const elapsedSec = Math.floor((Date.now() - startMs) / 1000);
+    if (elapsedSec < 60) return `${elapsedSec}s`;
+    const mins = Math.floor(elapsedSec / 60);
+    if (mins < 60) return `${mins}m`;
+    const hours = Math.floor(mins / 60);
+    const remMins = mins % 60;
+    return remMins > 0 ? `${hours}h${remMins}m` : `${hours}h`;
+  } catch {
+    return '';
+  }
+}
+
+function getToolCount(transcriptPath) {
+  if (!isValidTranscriptPath(transcriptPath) || !fs.existsSync(transcriptPath)) return 0;
+  try {
+    if (IS_WIN) {
+      const content = fs.readFileSync(transcriptPath, 'utf8');
+      return (content.match(/"type":"tool_use"/g) || []).length;
+    }
+    const safePath = shellEscape(transcriptPath);
+    return parseInt(execSync(`grep -c '"type":"tool_use"' ${safePath} 2>/dev/null || echo 0`, { encoding: 'utf8', timeout: 2000 }).trim(), 10);
+  } catch {
+    return 0;
+  }
+}
+
 const CUMULATIVE_PATH = path.join(PLUGIN_ROOT, 'config', 'cumulative-tokens.json');
 
 function readCumulative() {
@@ -154,26 +225,6 @@ function writeCumulative(data) {
   } catch {}
 }
 
-function getSessionTokens(transcriptPath) {
-  try {
-    if (!isValidTranscriptPath(transcriptPath) || !fs.existsSync(transcriptPath)) return null;
-    const content = fs.readFileSync(transcriptPath, 'utf8');
-    let totalIn = 0;
-    let totalOut = 0;
-    const inRe = /"input_tokens":(\d+)/g;
-    const cacheCreateRe = /"cache_creation_input_tokens":(\d+)/g;
-    const cacheReadRe = /"cache_read_input_tokens":(\d+)/g;
-    const outRe = /"output_tokens":(\d+)/g;
-    let m;
-    while ((m = inRe.exec(content)) !== null) totalIn += parseInt(m[1], 10);
-    while ((m = cacheCreateRe.exec(content)) !== null) totalIn += parseInt(m[1], 10);
-    while ((m = cacheReadRe.exec(content)) !== null) totalIn += parseInt(m[1], 10);
-    while ((m = outRe.exec(content)) !== null) totalOut += parseInt(m[1], 10);
-    return { input: totalIn, output: totalOut };
-  } catch {
-    return null;
-  }
-}
 
 function updateCumulative(sessionTokens) {
   if (!sessionTokens) return readCumulative();
@@ -378,9 +429,12 @@ function run() {
 
       const ctx = getContextBar(remaining, c);
       const modelName = formatModelName(data.model);
-      const tokens = getSessionTokens(transcriptPath);
-      const cumulative = updateCumulative(tokens);
+      const tokens = getDetailedTokens(transcriptPath);
+      const cumulative = updateCumulative(tokens ? { input: tokens.input + tokens.cacheWrite + tokens.cacheRead, output: tokens.output } : null);
       const agents = getAgentCounts(transcriptPath);
+      const cost = data.cost?.total_cost_usd ?? estimateCost(tokens, modelName);
+      const elapsed = getSessionElapsed(transcriptPath);
+      const toolCount = getToolCount(transcriptPath);
       const cpu = getCpuPercent();
       const mem = getMemInfo();
       const inGitRepo = isGitRepo(cwd);
@@ -396,10 +450,14 @@ function run() {
       if (ctx) parts.push(ctx);
       if (modelName) parts.push(`${c.model}${modelName}${c.reset}`);
       if (agents.total > 0) parts.push(`${c.agents}${agents.turn}/${agents.total} agents${c.reset}`);
+      if (cost > 0) parts.push(`${c.tokLabel}$${c.reset}${c.tokValue}${cost < 10 ? cost.toFixed(2) : cost.toFixed(1)}${c.reset}`);
+      if (elapsed) parts.push(`${c.tokValue}${elapsed}${c.reset}`);
+      if (toolCount > 0) parts.push(`${c.tokValue}${toolCount}${c.reset}${c.tokLabel}t${c.reset}`);
       if (tokens) {
-        const sessionTotal = tokens.input + tokens.output;
+        const totalIn = tokens.input + tokens.cacheWrite + tokens.cacheRead;
+        const sessionTotal = totalIn + tokens.output;
         const cumulativeTotal = cumulative.input + cumulative.output;
-        const ratio = tokens.output > 0 ? Math.round(tokens.input / tokens.output) : '0';
+        const ratio = tokens.output > 0 ? Math.round(totalIn / tokens.output) : '0';
         parts.push(`${c.tokLabel}cum${c.reset} ${c.tokValue}${formatTokens(cumulativeTotal)}${c.reset} ${c.tokLabel}ses${c.reset} ${c.tokValue}${formatTokens(sessionTotal)}${c.reset} ${c.tokLabel}i:o${c.reset} ${c.tokValue}${ratio}${c.reset}`);
       }
       const cpuColor = trafficColor(cpu, c);
