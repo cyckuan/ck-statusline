@@ -409,7 +409,7 @@ function run() {
       parts.push(`${c.cwd}${dirName}${c.reset}`);
       if (branch) parts.push(`${c.branch}${branch}${c.reset}`);
       if (remote) {
-        const link = remote.url ? `\x1b]8;;${remote.url}\x1b\\${remote.name}\x1b]8;;\x1b\\` : remote.name;
+        const link = remote.url ? `\x1b]8;;${remote.url}\x07${remote.name}\x1b]8;;\x07` : remote.name;
         parts.push(`${c.remote}${link}${c.reset}`);
       }
       if (behind > 0) parts.push(`${c.behind}${behind} behind${c.reset}`);
