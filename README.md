@@ -22,13 +22,14 @@ A configurable company name rendered on a coloured background. Supports inline A
 
 A 10-character progress bar showing how much of the context window has been consumed. The percentage accounts for a 16.5% auto-compaction buffer — the bar represents usable context, not raw remaining percentage.
 
-**Traffic light colours:**
+**Traffic light colours (thresholds configurable in `colors.json`):**
 
-| Colour | Range | Meaning |
-|--------|-------|---------|
-| Green | 0–49% | Plenty of room |
-| Yellow | 50–74% | Getting full, consider wrapping up complex chains |
-| Red (bold) | 75–100% | Near compaction threshold, expect context summarisation soon |
+| Colour | Default Range | Meaning |
+|--------|---------------|---------|
+| Green | 0–39% | Plenty of room |
+| Yellow | 40–59% | Moderate usage |
+| Amber | 60–79% | Getting full, consider wrapping up complex chains |
+| Red (bold) | 80–100% | Near compaction threshold, expect context summarisation soon |
 
 ### Model
 

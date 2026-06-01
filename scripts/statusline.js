@@ -35,7 +35,9 @@ function loadColors(theme) {
       },
       ctxGreen: esc(scheme.context_bar?.green),
       ctxYellow: esc(scheme.context_bar?.yellow),
+      ctxAmber: esc(scheme.context_bar?.amber),
       ctxRed: esc(scheme.context_bar?.red),
+      ctxThresholds: scheme.context_bar?.thresholds || [40, 60, 80],
       model: esc(scheme.model),
       tokLabel: esc(scheme.tokens?.label),
       tokValue: esc(scheme.tokens?.value),
@@ -55,7 +57,8 @@ function loadColors(theme) {
     if (isLight) {
       return {
         company: { text: '\x1b[1;97mA\x1b[22;37mCME', bg: '\x1b[41m' },
-        ctxGreen: '\x1b[32m', ctxYellow: '\x1b[38;5;208m', ctxRed: '\x1b[1;31m',
+        ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxAmber: '\x1b[38;5;208m', ctxRed: '\x1b[1;31m',
+        ctxThresholds: [40, 60, 80],
         model: '\x1b[1;30m',
         tokLabel: '\x1b[90m', tokValue: '\x1b[30m',
         agents: '\x1b[1;35m',
@@ -67,7 +70,8 @@ function loadColors(theme) {
     }
     return {
       company: { text: '\x1b[1;97mA\x1b[22;37mCME', bg: '\x1b[41m' },
-      ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxRed: '\x1b[1;31m',
+      ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxAmber: '\x1b[38;5;208m', ctxRed: '\x1b[1;31m',
+      ctxThresholds: [40, 60, 80],
       model: '\x1b[1;97m',
       tokLabel: '\x1b[2m', tokValue: '\x1b[97m',
       agents: '\x1b[1;95m',
@@ -103,9 +107,11 @@ function getContextBar(remaining, c) {
   const filled = Math.round((used / 100) * width);
   const bar = '█'.repeat(filled) + '░'.repeat(width - filled);
 
+  const [t1, t2, t3] = c.ctxThresholds;
   let color;
-  if (used < 50) color = c.ctxGreen;
-  else if (used < 75) color = c.ctxYellow;
+  if (used < t1) color = c.ctxGreen;
+  else if (used < t2) color = c.ctxYellow;
+  else if (used < t3) color = c.ctxAmber;
   else color = c.ctxRed;
 
   return `${color}${bar} ${used}%${c.reset}`;
