@@ -7,7 +7,7 @@
     "context_bar": {
       "green": "[32m",
       "yellow": "[33m",
-      "amber": "[38;5;208m",
+      "amber": "[38;2;255;165;0m",
       "red": "[1;31m",
       "thresholds": [40, 60, 80]
     },
@@ -36,7 +36,7 @@
     "context_bar": {
       "green": "[32m",
       "yellow": "[33m",
-      "amber": "[38;5;208m",
+      "amber": "[38;2;255;165;0m",
       "red": "[1;31m",
       "thresholds": [40, 60, 80]
     },

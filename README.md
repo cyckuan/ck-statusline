@@ -22,14 +22,20 @@ A configurable company name rendered on a coloured background. Supports inline A
 
 A 10-character progress bar showing how much of the context window has been consumed. The percentage accounts for a 16.5% auto-compaction buffer — the bar represents usable context, not raw remaining percentage.
 
-**Traffic light colours (thresholds configurable in `colors.json`):**
+**Traffic light colours:**
 
-| Colour | Default Range | Meaning |
-|--------|---------------|---------|
-| Green | 0–39% | Plenty of room |
-| Yellow | 40–59% | Moderate usage |
-| Amber | 60–79% | Getting full, consider wrapping up complex chains |
-| Red (bold) | 80–100% | Near compaction threshold, expect context summarisation soon |
+| Colour | ANSI Code | Default Range | Meaning |
+|--------|-----------|---------------|---------|
+| Green | `[32m` | 0–39% | Plenty of room |
+| Yellow | `[33m` | 40–59% | Moderate usage |
+| Orange | `[38;2;255;165;0m` (true colour) | 60–79% | Getting full, consider wrapping up |
+| Red | `[1;31m` (bold) | 80–100% | Near compaction, expect summarisation soon |
+
+**Configurable thresholds:** The transition points between colours are set in `config/colors.json` under `context_bar.thresholds` as an array of three values `[green→yellow, yellow→orange, orange→red]`. The defaults are `[40, 60, 80]`. For example, to shift to a more conservative scheme that warns earlier:
+
+```json
+"thresholds": [30, 50, 70]
+```
 
 ### Model
 

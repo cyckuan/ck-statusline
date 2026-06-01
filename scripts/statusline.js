@@ -57,7 +57,7 @@ function loadColors(theme) {
     if (isLight) {
       return {
         company: { text: '\x1b[1;97mA\x1b[22;37mCME', bg: '\x1b[41m' },
-        ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxAmber: '\x1b[38;5;208m', ctxRed: '\x1b[1;31m',
+        ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxAmber: '\x1b[38;2;255;165;0m', ctxRed: '\x1b[1;31m',
         ctxThresholds: [40, 60, 80],
         model: '\x1b[1;30m',
         tokLabel: '\x1b[90m', tokValue: '\x1b[30m',
@@ -70,7 +70,7 @@ function loadColors(theme) {
     }
     return {
       company: { text: '\x1b[1;97mA\x1b[22;37mCME', bg: '\x1b[41m' },
-      ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxAmber: '\x1b[38;5;208m', ctxRed: '\x1b[1;31m',
+      ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxAmber: '\x1b[38;2;255;165;0m', ctxRed: '\x1b[1;31m',
       ctxThresholds: [40, 60, 80],
       model: '\x1b[1;97m',
       tokLabel: '\x1b[2m', tokValue: '\x1b[97m',
