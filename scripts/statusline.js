@@ -10,8 +10,11 @@ const os = require('os');
 const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(PLUGIN_ROOT, 'config', 'colors.json');
 const LAYOUT_PATH = path.join(PLUGIN_ROOT, 'config', 'layout.json');
+const SPARKLINE_PATH = path.join(PLUGIN_ROOT, 'config', 'sparkline.json');
 const AUTO_COMPACT_BUFFER_PCT = 16.5;
 const MAX_STDIN = 1024 * 1024;
+const SPARK_CHARS = ['▁','▂','▃','▄','▅','▆','▇','█'];
+const SPARK_WIDTH = 8;
 const PLATFORM = os.platform();
 const IS_MAC = PLATFORM === 'darwin';
 const IS_WIN = PLATFORM === 'win32';
@@ -19,6 +22,34 @@ const IS_LINUX = PLATFORM === 'linux';
 
 function shellEscape(str) {
   return "'" + str.replace(/'/g, "'\\''") + "'";
+}
+
+function loadSparkHistory() {
+  try {
+    return JSON.parse(fs.readFileSync(SPARKLINE_PATH, 'utf8'));
+  } catch {
+    return { cpu: [], mem: [] };
+  }
+}
+
+function saveSparkHistory(history) {
+  try {
+    fs.writeFileSync(SPARKLINE_PATH, JSON.stringify(history));
+  } catch {}
+}
+
+function sparkline(values) {
+  if (!values.length) return '';
+  return values.map(v => {
+    const idx = Math.min(SPARK_CHARS.length - 1, Math.max(0, Math.round((v / 100) * (SPARK_CHARS.length - 1))));
+    return SPARK_CHARS[idx];
+  }).join('');
+}
+
+function updateSparkHistory(history, key, value) {
+  history[key] = history[key] || [];
+  history[key].push(value);
+  if (history[key].length > SPARK_WIDTH) history[key] = history[key].slice(-SPARK_WIDTH);
 }
 
 const DEFAULT_ORDER = ['badge','context','model','agents','cost','elapsed','tools','tokens','cpu','memory','cwd','branch','remote','behind'];
@@ -511,11 +542,18 @@ function run() {
         elements.tokens = null;
       }
 
-      const cpuColor = trafficColor(cpu, c);
-      elements.cpu = `${c.cpuLabel}cpu${c.reset} ${cpuColor}${cpu}%${c.reset}`;
+      const sparkHistory = loadSparkHistory();
+      updateSparkHistory(sparkHistory, 'cpu', cpu);
+      updateSparkHistory(sparkHistory, 'mem', mem.percent);
+      saveSparkHistory(sparkHistory);
 
+      const cpuSpark = sparkline(sparkHistory.cpu);
+      const cpuColor = trafficColor(cpu, c);
+      elements.cpu = `${c.cpuLabel}cpu${c.reset} ${cpuColor}${cpuSpark} ${cpu}%${c.reset}`;
+
+      const memSpark = sparkline(sparkHistory.mem);
       const memColor = trafficColor(mem.percent, c);
-      let memStr = `${c.memLabel}mem${c.reset} ${memColor}${mem.percent}% ${mem.usedGb}G${c.reset}`;
+      let memStr = `${c.memLabel}mem${c.reset} ${memColor}${memSpark} ${mem.percent}% ${mem.usedGb}G${c.reset}`;
       const memNotif = applyNotification(mem.percent, n.memory_warn, n.memory_critical, `mem ${mem.percent}% ${mem.usedGb}G`, c);
       if (memNotif) memStr = memNotif;
       elements.memory = memStr;
