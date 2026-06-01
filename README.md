@@ -24,12 +24,14 @@ A 10-character progress bar showing how much of the context window has been cons
 
 **Traffic light colours:**
 
-| Colour | Swatch | ANSI Code | Default Range | Meaning |
-|--------|--------|-----------|---------------|---------|
-| Green | ![#00cc00](https://placehold.co/12x12/00cc00/00cc00.png) | `[32m` | 0–39% | Plenty of room |
-| Yellow | ![#cccc00](https://placehold.co/12x12/cccc00/cccc00.png) | `[33m` | 40–59% | Moderate usage |
-| Orange | ![#ffa500](https://placehold.co/12x12/ffa500/ffa500.png) | `[38;2;255;165;0m` | 60–79% | Getting full, consider wrapping up |
-| Red | ![#cc0000](https://placehold.co/12x12/cc0000/cc0000.png) | `[1;31m` | 80–100% | Near compaction, expect summarisation soon |
+![Context bar colour levels](assets/context-colours.png)
+
+| Colour | ANSI Code | Default Range | Meaning |
+|--------|-----------|---------------|---------|
+| Green | `[32m` | 0–39% | Plenty of room |
+| Yellow | `[33m` | 40–59% | Moderate usage |
+| Orange | `[38;2;255;165;0m` (true colour) | 60–79% | Getting full, consider wrapping up |
+| Red | `[1;31m` (bold) | 80–100% | Near compaction, expect summarisation soon |
 
 **Configurable thresholds:** The transition points between colours are set in `config/colors.json` under `context_bar.thresholds` as an array of three values `[green→yellow, yellow→orange, orange→red]`. The defaults are `[40, 60, 80]`. For example, to shift to a more conservative scheme that warns earlier:
 
