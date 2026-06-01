@@ -4,6 +4,17 @@ A Claude Code plugin that displays a custom status line with a company badge, co
 
 ![CK Statusline](assets/ck-statusline.png)
 
+| Marker | Element |
+|--------|---------|
+| :red_circle: | Company Badge |
+| :green_circle: | Context Utilisation Bar |
+| :large_blue_circle: | Input/Output Tokens |
+| :yellow_circle: | CPU % |
+| :purple_circle: | Memory |
+| :green_circle: | Working Directory |
+| :purple_circle: | Git Branch |
+| :white_circle: | Git Remote URL |
+
 ## Elements (left to right)
 
 ### Company Badge
