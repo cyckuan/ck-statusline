@@ -351,7 +351,7 @@ function run() {
       if (tokens) {
         const sessionTotal = tokens.input + tokens.output;
         const cumulativeTotal = cumulative.input + cumulative.output;
-        const ratio = tokens.output > 0 ? (tokens.input / tokens.output).toFixed(1) : '0';
+        const ratio = tokens.output > 0 ? Math.round(tokens.input / tokens.output) : '0';
         parts.push(`${c.tokLabel}cum${c.reset} ${c.tokValue}${formatTokens(cumulativeTotal)}${c.reset} ${c.tokLabel}ses${c.reset} ${c.tokValue}${formatTokens(sessionTotal)}${c.reset} ${c.tokLabel}i:o${c.reset} ${c.tokValue}${ratio}${c.reset}`);
       }
       parts.push(`${c.cpuLabel}cpu${c.reset} ${c.cpuValue}${cpu}%${c.reset}`);

@@ -38,13 +38,19 @@ A 10-character progress bar showing how much of the context window has been cons
 
 Agents dispatched this turn / total agents dispatched this session. Parsed from the session transcript file by counting `Agent` tool calls. Only shown when total is greater than zero.
 
-### Session Tokens
+### Tokens
 
 ```
-in 4.2M out 39.1k
+cum 41.7M ses 25.3M i:o 442
 ```
 
-Cumulative input and output tokens for the current session, parsed from the transcript file. Input includes `input_tokens`, `cache_creation_input_tokens`, and `cache_read_input_tokens`. Values are formatted as `k` (thousands) or `M` (millions).
+Three token metrics:
+
+- **`cum`** — running cumulative total across all sessions. Persisted to `config/cumulative-tokens.json` and never reset by `/clear`.
+- **`ses`** — current session total (input + output) from the transcript file.
+- **`i:o`** — input-to-output token ratio (rounded to nearest integer). High ratios (e.g. 400+) are normal in long conversations since each turn re-sends the full context.
+
+Token values are formatted as `k` (thousands) or `M` (millions). Input includes `input_tokens`, `cache_creation_input_tokens`, and `cache_read_input_tokens`.
 
 ### CPU %
 
