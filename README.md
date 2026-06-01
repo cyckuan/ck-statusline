@@ -30,6 +30,14 @@ A 10-character progress bar showing how much of the context window has been cons
 | Yellow | 50–74% | Getting full, consider wrapping up complex chains |
 | Red (bold) | 75–100% | Near compaction threshold, expect context summarisation soon |
 
+### Model
+
+```
+opus 4.6
+```
+
+The current Claude model name and version, parsed from the model ID (e.g. `claude-opus-4-6` becomes `opus 4.6`). Falls back to the display name if the ID format is unrecognised.
+
 ### Agent Count
 
 ```
