@@ -9,6 +9,7 @@
       "yellow": "[33m",
       "red": "[1;31m"
     },
+    "model": "[1;97m",
     "tokens": {
       "label": "[2m",
       "value": "[97m"
@@ -35,6 +36,7 @@
       "yellow": "[38;5;208m",
       "red": "[1;31m"
     },
+    "model": "[1;30m",
     "tokens": {
       "label": "[90m",
       "value": "[30m"

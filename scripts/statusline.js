@@ -36,6 +36,7 @@ function loadColors(theme) {
       ctxGreen: esc(scheme.context_bar?.green),
       ctxYellow: esc(scheme.context_bar?.yellow),
       ctxRed: esc(scheme.context_bar?.red),
+      model: esc(scheme.model),
       tokLabel: esc(scheme.tokens?.label),
       tokValue: esc(scheme.tokens?.value),
       agents: esc(scheme.agents),
@@ -55,6 +56,7 @@ function loadColors(theme) {
       return {
         company: { text: '\x1b[1;97mA\x1b[22;37mCME', bg: '\x1b[41m' },
         ctxGreen: '\x1b[32m', ctxYellow: '\x1b[38;5;208m', ctxRed: '\x1b[1;31m',
+        model: '\x1b[1;30m',
         tokLabel: '\x1b[90m', tokValue: '\x1b[30m',
         agents: '\x1b[1;35m',
         cpuLabel: '\x1b[90m', cpuValue: '\x1b[30m',
@@ -66,6 +68,7 @@ function loadColors(theme) {
     return {
       company: { text: '\x1b[1;97mA\x1b[22;37mCME', bg: '\x1b[41m' },
       ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxRed: '\x1b[1;31m',
+      model: '\x1b[1;97m',
       tokLabel: '\x1b[2m', tokValue: '\x1b[97m',
       agents: '\x1b[1;95m',
       cpuLabel: '\x1b[2m', cpuValue: '',
@@ -74,6 +77,16 @@ function loadColors(theme) {
       behind: '\x1b[33m', sep: '\x1b[2m', reset: '\x1b[0m'
     };
   }
+}
+
+function formatModelName(model) {
+  if (!model) return '';
+  const id = model.id || '';
+  const match = id.match(/claude-(\w+)-(\d+)-(\d+)/);
+  if (match) return `${match[1]} ${match[2]}.${match[3]}`;
+  const display = model.display_name || '';
+  if (display) return display.toLowerCase();
+  return '';
 }
 
 function buildCompanyBadge(c) {
@@ -331,6 +344,7 @@ function run() {
       const transcriptPath = data.transcript_path || '';
 
       const ctx = getContextBar(remaining, c);
+      const modelName = formatModelName(data.model);
       const tokens = getSessionTokens(transcriptPath);
       const cumulative = updateCumulative(tokens);
       const agents = getAgentCounts(transcriptPath);
@@ -347,6 +361,7 @@ function run() {
       const parts = [];
 
       if (ctx) parts.push(ctx);
+      if (modelName) parts.push(`${c.model}${modelName}${c.reset}`);
       if (agents.total > 0) parts.push(`${c.agents}${agents.turn}/${agents.total} agents${c.reset}`);
       if (tokens) {
         const sessionTotal = tokens.input + tokens.output;
