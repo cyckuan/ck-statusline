@@ -1,11 +1,11 @@
 # CK Claude Code Statusline
 
-A Claude Code plugin that displays a custom status line with a company badge, context utilisation, session tokens, system metrics, and git context. Automatically switches between dark and light colour schemes.
+A Claude Code plugin that displays a custom status line with a company badge, context utilisation, session tokens, system metrics, and git context. Automatically switches between dark and light colour schemes. Cross-platform (Linux, macOS, Windows).
 
 ## Example Output
 
 ```
- ACME  ████░░░░░░ 42% | 1/3 agents | in 4.2M out 39.1k | cpu 38% | mem 1.1G 7% | myproject | main | git@github.com:user/repo.git | 2 behind
+ A  ████░░░░░░ 42% | 1/3 agents | in 4.2M out 39.1k | cpu 38% | mem 7% 1.1G | myproject | main | git@github.com:user/repo.git | 2 behind
 ```
 
 ## Elements (left to right)
@@ -13,7 +13,7 @@ A Claude Code plugin that displays a custom status line with a company badge, co
 ### Company Badge
 
 ```
- ACME 
+ A 
 ```
 
 A configurable company name rendered on a coloured background. Supports inline ANSI codes for per-character styling. Separated from the rest of the statusline by a space (no pipe separator).
@@ -56,15 +56,21 @@ Cumulative input and output tokens for the current session, parsed from the tran
 cpu 38%
 ```
 
-Current system CPU utilisation, sampled over a 100ms window from `/proc/stat`.
+Current system CPU utilisation. Platform-specific:
+- **Linux**: sampled over 100ms from `/proc/stat`
+- **macOS**: via `top -l 1`
+- **Windows**: via `wmic cpu get loadpercentage`
 
 ### Memory
 
 ```
-mem 1.1G 7%
+mem 7% 1.1G
 ```
 
-System memory usage in GB and as a percentage of total, calculated from `/proc/meminfo` (MemTotal minus MemAvailable).
+System memory usage as percentage and absolute GB used. Platform-specific:
+- **Linux**: `/proc/meminfo` (MemTotal minus MemAvailable)
+- **macOS**: `sysctl hw.memsize` + `vm_stat`
+- **Windows**: `wmic OS get FreePhysicalMemory,TotalVisibleMemorySize`
 
 ### Working Directory
 
@@ -80,7 +86,7 @@ Basename of the current working directory.
 main
 ```
 
-Current HEAD branch name. Only shown inside a git repository.
+Current HEAD branch name. Only shown when the cwd is inside a git repository.
 
 ### Git Remote URL
 
@@ -109,7 +115,7 @@ Values are ANSI escape code suffixes (everything after `\x1b`).
 ```json
 {
   "company": {
-    "text": "[1;97mA[22;37mCME",
+    "text": "[1;97mA",
     "background": "[41m"
   },
   "dark": {
@@ -168,6 +174,21 @@ This renders **A** in bold bright white and `CME` in grey. Set `"text": ""` to d
 | `[38;2;R;G;Bm` | True colour RGB foreground |
 | `""` | No styling (inherits terminal default) |
 
+## Platform Support
+
+| Platform | CPU | Memory | Agent Count | Git |
+|----------|-----|--------|-------------|-----|
+| Linux | `/proc/stat` | `/proc/meminfo` | `grep` + `tac` | `git` CLI |
+| macOS | `top -l 1` | `sysctl` + `vm_stat` | `grep` + `tail -r` | `git` CLI |
+| Windows | `wmic cpu` | `wmic OS` | Pure Node.js | `git` CLI |
+
+## Security
+
+- All external inputs (transcript path, branch names) are shell-escaped before use in commands
+- Branch names are validated against `/^[\w\-\/.]+$/` before interpolation
+- Transcript paths must end in `.jsonl`
+- Config file is read only from the plugin's own directory
+
 ## Installation
 
 1. Clone the repository:
@@ -217,5 +238,5 @@ Elements that may be absent or zero are omitted:
 - Context bar: hidden if no remaining percentage provided
 - Agents: hidden when total is 0
 - Tokens: hidden if no transcript path or file unreadable
-- Git branch/remote: hidden outside a git repository
+- Git branch/remote/behind: hidden when cwd is not inside a git repository
 - Commits behind: hidden when up to date (0 behind)
