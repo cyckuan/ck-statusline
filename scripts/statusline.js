@@ -111,6 +111,22 @@ function isValidTranscriptPath(p) {
   return true;
 }
 
+const CUMULATIVE_PATH = path.join(PLUGIN_ROOT, 'config', 'cumulative-tokens.json');
+
+function readCumulative() {
+  try {
+    return JSON.parse(fs.readFileSync(CUMULATIVE_PATH, 'utf8'));
+  } catch {
+    return { input: 0, output: 0 };
+  }
+}
+
+function writeCumulative(data) {
+  try {
+    fs.writeFileSync(CUMULATIVE_PATH, JSON.stringify(data));
+  } catch {}
+}
+
 function getSessionTokens(transcriptPath) {
   try {
     if (!isValidTranscriptPath(transcriptPath) || !fs.existsSync(transcriptPath)) return null;
@@ -130,6 +146,22 @@ function getSessionTokens(transcriptPath) {
   } catch {
     return null;
   }
+}
+
+function updateCumulative(sessionTokens) {
+  if (!sessionTokens) return readCumulative();
+  const cum = readCumulative();
+  const sessionTotal = sessionTokens.input + sessionTokens.output;
+  if (sessionTotal > (cum.lastSessionTotal || 0)) {
+    const delta = sessionTotal - (cum.lastSessionTotal || 0);
+    cum.input += sessionTokens.input - (cum.lastSessionIn || 0);
+    cum.output += sessionTokens.output - (cum.lastSessionOut || 0);
+  }
+  cum.lastSessionTotal = sessionTotal;
+  cum.lastSessionIn = sessionTokens.input;
+  cum.lastSessionOut = sessionTokens.output;
+  writeCumulative(cum);
+  return cum;
 }
 
 function getAgentCounts(transcriptPath) {
@@ -300,6 +332,7 @@ function run() {
 
       const ctx = getContextBar(remaining, c);
       const tokens = getSessionTokens(transcriptPath);
+      const cumulative = updateCumulative(tokens);
       const agents = getAgentCounts(transcriptPath);
       const cpu = getCpuPercent();
       const mem = getMemInfo();
@@ -315,7 +348,12 @@ function run() {
 
       if (ctx) parts.push(ctx);
       if (agents.total > 0) parts.push(`${c.agents}${agents.turn}/${agents.total} agents${c.reset}`);
-      if (tokens) parts.push(`${c.tokLabel}in${c.reset} ${c.tokValue}${formatTokens(tokens.input)}${c.reset} ${c.tokLabel}out${c.reset} ${c.tokValue}${formatTokens(tokens.output)}${c.reset}`);
+      if (tokens) {
+        const sessionTotal = tokens.input + tokens.output;
+        const cumulativeTotal = cumulative.input + cumulative.output;
+        const ratio = tokens.output > 0 ? (tokens.input / tokens.output).toFixed(1) : '0';
+        parts.push(`${c.tokLabel}cum${c.reset} ${c.tokValue}${formatTokens(cumulativeTotal)}${c.reset} ${c.tokLabel}ses${c.reset} ${c.tokValue}${formatTokens(sessionTotal)}${c.reset} ${c.tokLabel}i:o${c.reset} ${c.tokValue}${ratio}${c.reset}`);
+      }
       parts.push(`${c.cpuLabel}cpu${c.reset} ${c.cpuValue}${cpu}%${c.reset}`);
       parts.push(`${c.memLabel}mem${c.reset} ${c.memValue}${mem.percent}% ${mem.usedGb}G${c.reset}`);
       parts.push(`${c.cwd}${dirName}${c.reset}`);
