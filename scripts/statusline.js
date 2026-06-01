@@ -2,10 +2,9 @@
 'use strict';
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { execSync } = require('child_process');
-
-const os = require('os');
 
 const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(PLUGIN_ROOT, 'config', 'colors.json');
@@ -13,12 +12,12 @@ const LAYOUT_PATH = path.join(PLUGIN_ROOT, 'config', 'layout.json');
 const SPARKLINE_PATH = path.join(PLUGIN_ROOT, 'config', 'sparkline.json');
 const AUTO_COMPACT_BUFFER_PCT = 16.5;
 const MAX_STDIN = 1024 * 1024;
+const MAX_TRANSCRIPT_BYTES = 50 * 1024 * 1024;
 const SPARK_CHARS = ['▁','▂','▃','▄','▅','▆','▇','█'];
 const SPARK_WIDTH = 8;
 const PLATFORM = os.platform();
 const IS_MAC = PLATFORM === 'darwin';
 const IS_WIN = PLATFORM === 'win32';
-const IS_LINUX = PLATFORM === 'linux';
 
 function shellEscape(str) {
   return "'" + str.replace(/'/g, "'\\''") + "'";
@@ -209,6 +208,8 @@ function loadModelCosts() {
 function getDetailedTokens(transcriptPath) {
   try {
     if (!isValidTranscriptPath(transcriptPath) || !fs.existsSync(transcriptPath)) return null;
+    const stat = fs.statSync(transcriptPath);
+    if (stat.size > MAX_TRANSCRIPT_BYTES) return null;
     const content = fs.readFileSync(transcriptPath, 'utf8');
     let input = 0, output = 0, cacheWrite = 0, cacheRead = 0;
     const inRe = /"input_tokens":(\d+)/g;
@@ -294,7 +295,6 @@ function updateCumulative(sessionTokens) {
   const cum = readCumulative();
   const sessionTotal = sessionTokens.input + sessionTokens.output;
   if (sessionTotal > (cum.lastSessionTotal || 0)) {
-    const delta = sessionTotal - (cum.lastSessionTotal || 0);
     cum.input += sessionTokens.input - (cum.lastSessionIn || 0);
     cum.output += sessionTokens.output - (cum.lastSessionOut || 0);
   }
@@ -569,14 +569,6 @@ function run() {
       }
 
       elements.behind = behind > 0 ? `${c.behind}${behind} behind${c.reset}` : null;
-
-      // Context notification override
-      if (remaining != null) {
-        const ctxNotif = applyNotification(usedCtx, n.context_warn, n.context_critical, null, c);
-        if (ctxNotif && elements.context) {
-          elements.context = getContextBar(remaining, c);
-        }
-      }
 
       // Assemble in configured order, respecting compact mode
       const excludeSet = layout.mode === 'compact' ? new Set(layout.compactExclude) : new Set();

@@ -11,14 +11,7 @@ Usage:
 Run the following to update the layout config:
 
 ```bash
-node -e "
-const fs = require('fs');
-const path = '${CLAUDE_PLUGIN_ROOT}/config/layout.json';
-const layout = JSON.parse(fs.readFileSync(path, 'utf8'));
-layout.mode = '$ARGUMENTS' === 'less' ? 'compact' : 'verbose';
-fs.writeFileSync(path, JSON.stringify(layout, null, 2) + '\n');
-console.log('Statusline mode: ' + layout.mode);
-"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/set-mode.js" "$ARGUMENTS"
 ```
 
 Confirm the mode change to the user.
