@@ -1,9 +1,9 @@
 {
-  "name": "charles-statusline",
+  "name": "ck-statusline",
   "version": "1.0.0",
   "description": "Custom status line with context bar, tokens, system metrics, and git info",
   "author": {
-    "name": "Charles"
+    "name": "cyckuan"
   },
   "license": "MIT"
 }
