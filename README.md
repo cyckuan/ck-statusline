@@ -2,11 +2,7 @@
 
 A Claude Code plugin that displays a custom status line with a company badge, context utilisation, session tokens, system metrics, and git context. Automatically switches between dark and light colour schemes. Cross-platform (Linux, macOS, Windows).
 
-## Example Output
-
-```
- A  ████░░░░░░ 42% | 1/3 agents | in 4.2M out 39.1k | cpu 38% | mem 7% 1.1G | myproject | main | git@github.com:user/repo.git | 2 behind
-```
+![CK Statusline](assets/ck-statusline.png)
 
 ## Elements (left to right)
 
