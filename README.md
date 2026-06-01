@@ -304,6 +304,17 @@ Replace the path if you cloned to a different location.
 
 3. Restart Claude Code. The status line appears on the next session.
 
+## Commands
+
+### `/ccsl more` / `/ccsl less`
+
+Toggle between verbose and compact display modes mid-session:
+
+- **`/ccsl more`** — verbose mode, shows all elements
+- **`/ccsl less`** — compact mode, hides elements listed in `compact.exclude` (default: `tokens`, `remote`)
+
+The change takes effect on the next statusline refresh.
+
 ## Uninstallation
 
 **From within Claude Code:**
