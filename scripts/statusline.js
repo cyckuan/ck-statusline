@@ -324,10 +324,29 @@ function getGitBranch(dir) {
 
 function getGitRemote(dir) {
   try {
-    return execSync('git remote get-url origin', { cwd: dir, encoding: 'utf8', timeout: 1000 }).trim();
+    const raw = execSync('git remote get-url origin', { cwd: dir, encoding: 'utf8', timeout: 1000 }).trim();
+    return parseRemote(raw);
   } catch {
-    return '';
+    return null;
   }
+}
+
+function parseRemote(raw) {
+  // git@github.com:user/repo.git -> { name: 'user/repo', url: 'https://github.com/user/repo' }
+  const sshMatch = raw.match(/^git@([^:]+):(.+?)(?:\.git)?$/);
+  if (sshMatch) {
+    const host = sshMatch[1];
+    const path = sshMatch[2];
+    return { name: path, url: `https://${host}/${path}` };
+  }
+  // https://github.com/user/repo.git -> { name: 'user/repo', url: 'https://github.com/user/repo' }
+  const httpsMatch = raw.match(/^https?:\/\/([^/]+)\/(.+?)(?:\.git)?$/);
+  if (httpsMatch) {
+    const host = httpsMatch[1];
+    const path = httpsMatch[2];
+    return { name: path, url: `https://${host}/${path}` };
+  }
+  return { name: raw, url: '' };
 }
 
 function getGitBehind(dir, branch) {
@@ -366,7 +385,7 @@ function run() {
       const mem = getMemInfo();
       const inGitRepo = isGitRepo(cwd);
       const branch = inGitRepo ? getGitBranch(cwd) : '';
-      const remote = inGitRepo ? getGitRemote(cwd) : '';
+      const remote = inGitRepo ? getGitRemote(cwd) : null;
       const behind = inGitRepo ? getGitBehind(cwd, branch) : 0;
       const dirName = path.basename(cwd);
 
@@ -389,7 +408,10 @@ function run() {
       parts.push(`${c.memLabel}mem${c.reset} ${memColor}${mem.percent}% ${mem.usedGb}G${c.reset}`);
       parts.push(`${c.cwd}${dirName}${c.reset}`);
       if (branch) parts.push(`${c.branch}${branch}${c.reset}`);
-      if (remote) parts.push(`${c.remote}${remote}${c.reset}`);
+      if (remote) {
+        const link = remote.url ? `\x1b]8;;${remote.url}\x1b\\${remote.name}\x1b]8;;\x1b\\` : remote.name;
+        parts.push(`${c.remote}${link}${c.reset}`);
+      }
       if (behind > 0) parts.push(`${c.behind}${behind} behind${c.reset}`);
 
       const line = badge ? `${badge} ${parts.join(sep)}` : parts.join(sep);
