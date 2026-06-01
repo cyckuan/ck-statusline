@@ -1,4 +1,8 @@
 {
+  "company": {
+    "text": "[1;97mA[22;37mCME",
+    "background": "[41m"
+  },
   "context_bar": {
     "green": "[32m",
     "yellow": "[33m",

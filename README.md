@@ -141,15 +141,43 @@ Edit `config/colors.json` to customise all colours. Values are ANSI escape code 
 
 ## Installation
 
-Add to your `~/.claude/settings.json`:
+1. Clone the repository:
+
+```bash
+git clone git@github.com:cyckuan/ck-statusline.git ~/cc/ck-statusline
+```
+
+2. Add the following to your `~/.claude/settings.json`:
 
 ```json
 {
   "statusLine": {
     "type": "command",
-    "command": "node \"/home/ubuntu/cc/charles-statusline/scripts/statusline.js\""
+    "command": "node \"~/cc/ck-statusline/scripts/statusline.js\""
   }
 }
+```
+
+Replace the path if you cloned to a different location.
+
+3. Restart Claude Code. The status line appears on the next session.
+
+## Uninstallation
+
+**From within Claude Code:**
+
+Run the `/uninstall-statusline` slash command.
+
+**From the terminal:**
+
+```bash
+node ~/cc/ck-statusline/scripts/uninstall.js
+```
+
+Both methods remove the `statusLine` entry from `~/.claude/settings.json`, reverting to no status line. The plugin files remain on disk — delete the directory manually if you no longer need them:
+
+```bash
+rm -rf ~/cc/ck-statusline
 ```
 
 ## Conditional Display

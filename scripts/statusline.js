@@ -14,7 +14,12 @@ function loadColors() {
   try {
     const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
     const esc = (code) => code ? `\x1b${code}` : '';
+    const escInline = (str) => str ? str.replace(/\[/g, '\x1b[') : '';
     return {
+      company: {
+        text: escInline(raw.company?.text),
+        bg: esc(raw.company?.background)
+      },
       ctxGreen: esc(raw.context_bar?.green),
       ctxYellow: esc(raw.context_bar?.yellow),
       ctxRed: esc(raw.context_bar?.red),
@@ -34,6 +39,7 @@ function loadColors() {
     };
   } catch {
     return {
+      company: { text: '\x1b[1;97mA\x1b[22;37mCME', bg: '\x1b[41m' },
       ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxRed: '\x1b[1;31m',
       tokLabel: '\x1b[2m', tokValue: '\x1b[97m',
       agents: '\x1b[35m',
@@ -43,6 +49,12 @@ function loadColors() {
       behind: '\x1b[33m', sep: '\x1b[2m', reset: '\x1b[0m'
     };
   }
+}
+
+function buildCompanyBadge(c) {
+  const { text, bg } = c.company;
+  if (!text) return '';
+  return `${bg} ${text} ${c.reset}`;
 }
 
 function getContextBar(remaining, c) {
@@ -88,13 +100,14 @@ function getSessionTokens(transcriptPath) {
   }
 }
 
-function getSubagentCount() {
+function getAgentCounts(transcriptPath) {
   try {
-    const out = execSync("ps aux | grep -c '[c]laude'", { encoding: 'utf8', timeout: 1000 }).trim();
-    const count = Math.max(0, parseInt(out, 10) - 1);
-    return count > 0 ? count : 0;
+    if (!transcriptPath || !fs.existsSync(transcriptPath)) return { total: 0, turn: 0 };
+    const total = parseInt(execSync(`grep -c '"name":"Agent"' "${transcriptPath}" 2>/dev/null || echo 0`, { encoding: 'utf8', timeout: 2000 }).trim(), 10);
+    const sinceLastPrompt = parseInt(execSync(`tac "${transcriptPath}" | sed '/"role":"user"/q' | grep -c '"name":"Agent"' 2>/dev/null || echo 0`, { encoding: 'utf8', timeout: 2000 }).trim(), 10);
+    return { total, turn: sinceLastPrompt };
   } catch {
-    return 0;
+    return { total: 0, turn: 0 };
   }
 }
 
@@ -120,15 +133,17 @@ function getCpuPercent() {
   }
 }
 
-function getMemPercent() {
+function getMemInfo() {
   try {
     const meminfo = fs.readFileSync('/proc/meminfo', 'utf8');
-    const total = parseInt(meminfo.match(/MemTotal:\s+(\d+)/)?.[1] || '0', 10);
-    const available = parseInt(meminfo.match(/MemAvailable:\s+(\d+)/)?.[1] || '0', 10);
-    if (total === 0) return 0;
-    return Math.round(((total - available) / total) * 100);
+    const totalKb = parseInt(meminfo.match(/MemTotal:\s+(\d+)/)?.[1] || '0', 10);
+    const availableKb = parseInt(meminfo.match(/MemAvailable:\s+(\d+)/)?.[1] || '0', 10);
+    if (totalKb === 0) return { percent: 0, usedGb: '0' };
+    const percent = Math.round(((totalKb - availableKb) / totalKb) * 100);
+    const usedGb = ((totalKb - availableKb) / 1048576).toFixed(1);
+    return { percent, usedGb };
   } catch {
-    return 0;
+    return { percent: 0, usedGb: '0' };
   }
 }
 
@@ -176,28 +191,30 @@ function run() {
 
       const ctx = getContextBar(remaining, c);
       const tokens = getSessionTokens(transcriptPath);
-      const agents = getSubagentCount();
+      const agents = getAgentCounts(transcriptPath);
       const cpu = getCpuPercent();
-      const mem = getMemPercent();
+      const mem = getMemInfo();
       const branch = getGitBranch(cwd);
       const remote = getGitRemote(cwd);
       const behind = getGitBehind(cwd, branch);
       const dirName = path.basename(cwd);
 
       const sep = ` ${c.sep}|${c.reset} `;
+      const badge = buildCompanyBadge(c);
       const parts = [];
 
       if (ctx) parts.push(ctx);
-      if (agents > 0) parts.push(`${c.agents}${agents} agents${c.reset}`);
+      if (agents.total > 0) parts.push(`${c.agents}${agents.turn}/${agents.total} agents${c.reset}`);
       if (tokens) parts.push(`${c.tokLabel}in${c.reset} ${c.tokValue}${formatTokens(tokens.input)}${c.reset} ${c.tokLabel}out${c.reset} ${c.tokValue}${formatTokens(tokens.output)}${c.reset}`);
       parts.push(`${c.cpuLabel}cpu${c.reset} ${c.cpuValue}${cpu}%${c.reset}`);
-      parts.push(`${c.memLabel}mem${c.reset} ${c.memValue}${mem}%${c.reset}`);
+      parts.push(`${c.memLabel}mem${c.reset} ${c.memValue}${mem.usedGb}G ${mem.percent}%${c.reset}`);
       parts.push(`${c.cwd}${dirName}${c.reset}`);
       if (branch) parts.push(`${c.branch}${branch}${c.reset}`);
       if (remote) parts.push(`${c.remote}${remote}${c.reset}`);
       if (behind > 0) parts.push(`${c.behind}${behind} behind${c.reset}`);
 
-      process.stdout.write(parts.join(sep));
+      const line = badge ? `${badge} ${parts.join(sep)}` : parts.join(sep);
+      process.stdout.write(line);
     } catch {
       // silent
     }
