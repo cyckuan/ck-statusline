@@ -1,0 +1,26 @@
+{
+  "context_bar": {
+    "green": "[32m",
+    "yellow": "[33m",
+    "red": "[1;31m"
+  },
+  "tokens": {
+    "label": "[2m",
+    "value": "[97m"
+  },
+  "agents": "[1;95m",
+  "cpu": {
+    "label": "[2m",
+    "value": ""
+  },
+  "memory": {
+    "label": "[2m",
+    "value": ""
+  },
+  "cwd": "[36m",
+  "git_branch": "[34m",
+  "git_remote": "[2m",
+  "git_behind": "[33m",
+  "separator": "[2m",
+  "reset": "[0m"
+}
