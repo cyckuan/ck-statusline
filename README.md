@@ -287,24 +287,42 @@ When a metric crosses its warning threshold, the value turns bold yellow. At the
 
 ## Installation
 
-1. Clone the repository:
+### Via marketplace (recommended)
 
-```bash
-git clone git@github.com:cyckuan/ck-statusline.git ~/cc/ck-statusline
+```
+/plugin marketplace add cyckuan/ck-statusline
+/plugin install ck-statusline@ck-statusline
 ```
 
-2. Add the following to your `~/.claude/settings.json`:
+Then add the statusline to your `~/.claude/settings.json`:
 
 ```json
 {
   "statusLine": {
     "type": "command",
-    "command": "node \"~/cc/ck-statusline/scripts/statusline.js\""
+    "command": "node \"~/.claude/plugins/marketplaces/ck-statusline/scripts/statusline.js\""
   }
 }
 ```
 
-Replace the path if you cloned to a different location.
+### Manual install
+
+1. Clone the repository:
+
+```bash
+git clone git@github.com:cyckuan/ck-statusline.git ~/.claude/plugins/local/ck-statusline
+```
+
+2. Add to your `~/.claude/settings.json`:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "node \"~/.claude/plugins/local/ck-statusline/scripts/statusline.js\""
+  }
+}
+```
 
 3. Restart Claude Code. The status line appears on the next session.
 
@@ -325,16 +343,22 @@ The change takes effect on the next statusline refresh.
 
 Run the `/uninstall-statusline` slash command.
 
-**From the terminal:**
+**From the terminal (marketplace install):**
 
 ```bash
-node ~/cc/ck-statusline/scripts/uninstall.js
+node ~/.claude/plugins/marketplaces/ck-statusline/scripts/uninstall.js
 ```
 
-Both methods remove the `statusLine` entry from `~/.claude/settings.json`, reverting to no status line. The plugin files remain on disk — delete the directory manually if you no longer need them:
+**From the terminal (manual install):**
 
 ```bash
-rm -rf ~/cc/ck-statusline
+node ~/.claude/plugins/local/ck-statusline/scripts/uninstall.js
+```
+
+Both methods remove the `statusLine` entry from `~/.claude/settings.json`, reverting to no status line. To fully remove the plugin, also run:
+
+```
+/plugin marketplace remove ck-statusline
 ```
 
 ## Conditional Display
