@@ -161,11 +161,19 @@ function isValidTranscriptPath(p) {
   return true;
 }
 
-const COST_PER_M = {
-  'haiku': { input: 0.80, output: 4.00, cacheWrite: 1.00, cacheRead: 0.08 },
-  'sonnet': { input: 3.00, output: 15.00, cacheWrite: 3.75, cacheRead: 0.30 },
-  'opus': { input: 15.00, output: 75.00, cacheWrite: 18.75, cacheRead: 1.50 },
-};
+const MODEL_COST_PATH = path.join(PLUGIN_ROOT, 'config', 'modelcost.json');
+
+function loadModelCosts() {
+  try {
+    return JSON.parse(fs.readFileSync(MODEL_COST_PATH, 'utf8'));
+  } catch {
+    return {
+      haiku: { input: 0.80, output: 4.00, cacheWrite: 1.00, cacheRead: 0.08 },
+      sonnet: { input: 3.00, output: 15.00, cacheWrite: 3.75, cacheRead: 0.30 },
+      opus: { input: 15.00, output: 75.00, cacheWrite: 18.75, cacheRead: 1.50 }
+    };
+  }
+}
 
 function getDetailedTokens(transcriptPath) {
   try {
@@ -189,8 +197,9 @@ function getDetailedTokens(transcriptPath) {
 
 function estimateCost(detailedTokens, modelName) {
   if (!detailedTokens) return 0;
-  const tier = Object.keys(COST_PER_M).find(k => modelName && modelName.includes(k)) || 'opus';
-  const rates = COST_PER_M[tier];
+  const costs = loadModelCosts();
+  const tier = Object.keys(costs).find(k => modelName && modelName.includes(k)) || 'opus';
+  const rates = costs[tier];
   const { input, output, cacheWrite, cacheRead } = detailedTokens;
   return (input * rates.input + cacheWrite * rates.cacheWrite + cacheRead * rates.cacheRead + output * rates.output) / 1_000_000;
 }
