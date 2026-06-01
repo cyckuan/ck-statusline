@@ -31,8 +31,10 @@ Ideas for additional statusline metrics and features, sourced from community imp
 
 ## UX Improvements
 
-- [ ] Configurable element ordering — let users reorder statusline segments in config
-- [ ] Verbose/compact modes — toggle between full and abbreviated display
-- [ ] Notification thresholds — flash/blink when cost or context exceeds configured limits
+- [x] Configurable element ordering — reorder statusline segments via `config/layout.json`
+- [x] Verbose/compact modes — toggle with `/ccsl more` and `/ccsl less`
+- [x] Notification thresholds — flash/blink when cost, context, or memory exceeds configured limits
+- [x] History graphs — sparkline-style mini charts for CPU/memory over time (unicode block characters)
 - [ ] Tooltip-style expanded view — show detailed breakdown on hover (terminal-dependent)
-- [ ] History graphs — sparkline-style mini charts for CPU/memory over time (unicode block characters)
+- [ ] Configurable sparkline width — allow users to set number of history points in layout.json
+- [ ] Element-specific compact labels — shorter labels in compact mode (e.g. "c" instead of "cpu")

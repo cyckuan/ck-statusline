@@ -7,14 +7,14 @@
     {
       "name": "ck-statusline",
       "source": ".",
-      "description": "Custom status line with context bar, tokens, system metrics, and git info. Auto-switches dark/light themes.",
-      "version": "1.0.0",
+      "description": "Claude Code status line with context bar, model, agents, cost, elapsed time, tool count, tokens, CPU/memory sparklines, and git info. Traffic-light colours, dark/light auto-switching, configurable layout and notifications.",
+      "version": "2.0.0",
       "author": {
         "name": "cyckuan"
       },
       "repository": "https://github.com/cyckuan/ck-statusline",
       "license": "MIT",
-      "keywords": ["statusline", "status-bar", "context", "tokens", "git", "metrics"]
+      "keywords": ["statusline", "status-bar", "context", "tokens", "cost", "sparkline", "git", "metrics", "notifications"]
     }
   ]
 }
