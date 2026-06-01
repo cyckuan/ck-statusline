@@ -13,7 +13,7 @@
         "name": "cyckuan"
       },
       "repository": "https://github.com/cyckuan/ck-statusline",
-      "license": "MIT",
+      "license": "CC-BY-NC-4.0",
       "keywords": ["statusline", "status-bar", "context", "tokens", "cost", "sparkline", "git", "metrics", "notifications"]
     }
   ]
