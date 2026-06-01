@@ -9,6 +9,7 @@ const os = require('os');
 
 const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(PLUGIN_ROOT, 'config', 'colors.json');
+const LAYOUT_PATH = path.join(PLUGIN_ROOT, 'config', 'layout.json');
 const AUTO_COMPACT_BUFFER_PCT = 16.5;
 const MAX_STDIN = 1024 * 1024;
 const PLATFORM = os.platform();
@@ -18,6 +19,28 @@ const IS_LINUX = PLATFORM === 'linux';
 
 function shellEscape(str) {
   return "'" + str.replace(/'/g, "'\\''") + "'";
+}
+
+const DEFAULT_ORDER = ['badge','context','model','agents','cost','elapsed','tools','tokens','cpu','memory','cwd','branch','remote','behind'];
+const DEFAULT_NOTIFICATIONS = { cost_warn: 5, cost_critical: 20, context_warn: 70, context_critical: 90, memory_warn: 80, memory_critical: 95 };
+
+function loadLayout() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(LAYOUT_PATH, 'utf8'));
+    return {
+      mode: raw.mode || 'verbose',
+      order: raw.order || DEFAULT_ORDER,
+      compactExclude: raw.compact?.exclude || ['tokens', 'remote'],
+      notifications: { ...DEFAULT_NOTIFICATIONS, ...raw.notifications }
+    };
+  } catch {
+    return {
+      mode: 'verbose',
+      order: DEFAULT_ORDER,
+      compactExclude: ['tokens', 'remote'],
+      notifications: DEFAULT_NOTIFICATIONS
+    };
+  }
 }
 
 function loadColors(theme) {
@@ -410,6 +433,12 @@ function getGitBehind(dir, branch) {
   }
 }
 
+function applyNotification(value, warnThreshold, critThreshold, text, c) {
+  if (value >= critThreshold) return `\x1b[5;1;31m${text}${c.reset}`;
+  if (value >= warnThreshold) return `\x1b[1;33m${text}${c.reset}`;
+  return null;
+}
+
 function run() {
   let input = '';
   const timeout = setTimeout(() => process.exit(0), 3000);
@@ -423,16 +452,15 @@ function run() {
       const data = JSON.parse(input);
       const theme = data.output_style?.name || '';
       const c = loadColors(theme);
+      const layout = loadLayout();
       const cwd = data.workspace?.current_dir || data.cwd || process.cwd();
       const remaining = data.context_window?.remaining_percentage;
       const transcriptPath = data.transcript_path || '';
 
-      const ctx = getContextBar(remaining, c);
-      const modelName = formatModelName(data.model);
       const tokens = getDetailedTokens(transcriptPath);
       const cumulative = updateCumulative(tokens ? { input: tokens.input + tokens.cacheWrite + tokens.cacheRead, output: tokens.output } : null);
       const agents = getAgentCounts(transcriptPath);
-      const cost = data.cost?.total_cost_usd ?? estimateCost(tokens, modelName);
+      const cost = data.cost?.total_cost_usd ?? estimateCost(tokens, data.model ? formatModelName(data.model) : '');
       const elapsed = getSessionElapsed(transcriptPath);
       const toolCount = getToolCount(transcriptPath);
       const cpu = getCpuPercent();
@@ -442,36 +470,80 @@ function run() {
       const remote = inGitRepo ? getGitRemote(cwd) : null;
       const behind = inGitRepo ? getGitBehind(cwd, branch) : 0;
       const dirName = path.basename(cwd);
+      const modelName = formatModelName(data.model);
+      const n = layout.notifications;
 
-      const sep = ` ${c.sep}|${c.reset} `;
-      const badge = buildCompanyBadge(c);
-      const parts = [];
+      const usedCtx = remaining != null ? Math.max(0, Math.min(100, Math.round(100 - ((remaining - AUTO_COMPACT_BUFFER_PCT) / (100 - AUTO_COMPACT_BUFFER_PCT)) * 100))) : 0;
 
-      if (ctx) parts.push(ctx);
-      if (modelName) parts.push(`${c.model}${modelName}${c.reset}`);
-      if (agents.total > 0) parts.push(`${c.agents}${agents.turn}/${agents.total} agents${c.reset}`);
-      if (cost > 0) parts.push(`${c.tokLabel}$${c.reset}${c.tokValue}${cost < 10 ? cost.toFixed(2) : cost.toFixed(1)}${c.reset}`);
-      if (elapsed) parts.push(`${c.tokValue}${elapsed}${c.reset}`);
-      if (toolCount > 0) parts.push(`${c.tokValue}${toolCount}${c.reset}${c.tokLabel}t${c.reset}`);
+      const elements = {};
+
+      elements.badge = buildCompanyBadge(c) || null;
+      elements.context = getContextBar(remaining, c) || null;
+      elements.model = modelName ? `${c.model}${modelName}${c.reset}` : null;
+      elements.agents = agents.total > 0 ? `${c.agents}${agents.turn}/${agents.total} agents${c.reset}` : null;
+
+      let costStr = null;
+      if (cost > 0) {
+        const costText = `$${cost < 10 ? cost.toFixed(2) : cost.toFixed(1)}`;
+        costStr = applyNotification(cost, n.cost_warn, n.cost_critical, costText, c) || `${c.tokLabel}$${c.reset}${c.tokValue}${cost < 10 ? cost.toFixed(2) : cost.toFixed(1)}${c.reset}`;
+      }
+      elements.cost = costStr;
+
+      elements.elapsed = elapsed ? `${c.tokValue}${elapsed}${c.reset}` : null;
+      elements.tools = toolCount > 0 ? `${c.tokValue}${toolCount}${c.reset}${c.tokLabel}t${c.reset}` : null;
+
       if (tokens) {
         const totalIn = tokens.input + tokens.cacheWrite + tokens.cacheRead;
         const sessionTotal = totalIn + tokens.output;
         const cumulativeTotal = cumulative.input + cumulative.output;
         const ratio = tokens.output > 0 ? Math.round(totalIn / tokens.output) : '0';
-        parts.push(`${c.tokLabel}cum${c.reset} ${c.tokValue}${formatTokens(cumulativeTotal)}${c.reset} ${c.tokLabel}ses${c.reset} ${c.tokValue}${formatTokens(sessionTotal)}${c.reset} ${c.tokLabel}i:o${c.reset} ${c.tokValue}${ratio}${c.reset}`);
+        elements.tokens = `${c.tokLabel}cum${c.reset} ${c.tokValue}${formatTokens(cumulativeTotal)}${c.reset} ${c.tokLabel}ses${c.reset} ${c.tokValue}${formatTokens(sessionTotal)}${c.reset} ${c.tokLabel}i:o${c.reset} ${c.tokValue}${ratio}${c.reset}`;
+      } else {
+        elements.tokens = null;
       }
+
       const cpuColor = trafficColor(cpu, c);
+      elements.cpu = `${c.cpuLabel}cpu${c.reset} ${cpuColor}${cpu}%${c.reset}`;
+
       const memColor = trafficColor(mem.percent, c);
-      parts.push(`${c.cpuLabel}cpu${c.reset} ${cpuColor}${cpu}%${c.reset}`);
-      parts.push(`${c.memLabel}mem${c.reset} ${memColor}${mem.percent}% ${mem.usedGb}G${c.reset}`);
-      parts.push(`${c.cwd}${dirName}${c.reset}`);
-      if (branch) parts.push(`${c.branch}${branch}${c.reset}`);
+      let memStr = `${c.memLabel}mem${c.reset} ${memColor}${mem.percent}% ${mem.usedGb}G${c.reset}`;
+      const memNotif = applyNotification(mem.percent, n.memory_warn, n.memory_critical, `mem ${mem.percent}% ${mem.usedGb}G`, c);
+      if (memNotif) memStr = memNotif;
+      elements.memory = memStr;
+
+      elements.cwd = `${c.cwd}${dirName}${c.reset}`;
+      elements.branch = branch ? `${c.branch}${branch}${c.reset}` : null;
+
       if (remote) {
         const link = remote.url ? `\x1b]8;;${remote.url}\x07${remote.name}\x1b]8;;\x07` : remote.name;
-        parts.push(`${c.remote}${link}${c.reset}`);
+        elements.remote = `${c.remote}${link}${c.reset}`;
+      } else {
+        elements.remote = null;
       }
-      if (behind > 0) parts.push(`${c.behind}${behind} behind${c.reset}`);
 
+      elements.behind = behind > 0 ? `${c.behind}${behind} behind${c.reset}` : null;
+
+      // Context notification override
+      if (remaining != null) {
+        const ctxNotif = applyNotification(usedCtx, n.context_warn, n.context_critical, null, c);
+        if (ctxNotif && elements.context) {
+          elements.context = getContextBar(remaining, c);
+        }
+      }
+
+      // Assemble in configured order, respecting compact mode
+      const excludeSet = layout.mode === 'compact' ? new Set(layout.compactExclude) : new Set();
+      const parts = [];
+
+      for (const key of layout.order) {
+        if (excludeSet.has(key)) continue;
+        if (key === 'badge') continue;
+        const el = elements[key];
+        if (el) parts.push(el);
+      }
+
+      const sep = ` ${c.sep}|${c.reset} `;
+      const badge = excludeSet.has('badge') ? '' : (elements.badge || '');
       const line = badge ? `${badge} ${parts.join(sep)}` : parts.join(sep);
       process.stdout.write(line);
     } catch {
