@@ -55,6 +55,40 @@ Agents dispatched this turn / total agents dispatched this session. Parsed from 
 
 **Why:** Subagents run concurrently and consume tokens independently. Tracking how many have been launched helps you gauge parallelism, estimate cost, and understand why CPU/memory might be spiking.
 
+### Session Cost
+
+![Cost](assets/el-cost.png)
+
+Estimated session cost in USD, calculated from token usage with model-specific rates. Uses the harness-provided `cost.total_cost_usd` when available, otherwise estimates from transcript token counts with proper cache billing (cache reads at 0.1x, cache writes at 1.25x).
+
+**Why:** Tokens are abstract — dollars are immediately understandable. Seeing `$4.23` lets you intuitively judge whether the current conversation is worth continuing or whether to start fresh.
+
+**Notifications:**
+
+| Level | Threshold | Effect |
+|-------|-----------|--------|
+| Normal | < $5 | ![Cost](assets/el-cost.png) |
+| Warning | >= $5 | ![Cost warn](assets/el-cost-warn.png) bold yellow |
+| Critical | >= $20 | ![Cost critical](assets/el-cost-critical.png) blinking bold red |
+
+Thresholds configurable in `config/layout.json` under `notifications.cost_warn` and `notifications.cost_critical`.
+
+### Session Elapsed
+
+![Elapsed](assets/el-elapsed.png)
+
+Time since the first transcript entry in the current session. Formatted as `Xs`, `Xm`, `XhYm`, or `Xh`.
+
+**Why:** Awareness of how long you've been in a session helps you decide when to take a break, wrap up, or start fresh before context gets too bloated.
+
+### Tool Calls
+
+![Tools](assets/el-tools.png)
+
+Total number of tool invocations this session (Read, Edit, Bash, Agent, etc.).
+
+**Why:** A proxy for how much work has been done. High tool counts in a short time indicate intense activity. Also useful for comparing productivity across sessions.
+
 ### Tokens
 
 ![Tokens](assets/el-tokens.png)
@@ -193,6 +227,45 @@ This renders **A** in bold bright white and `CME` in grey. Set `"text": ""` to d
 | `[38;2;R;G;Bm` | True colour RGB foreground |
 | `""` | No styling (inherits terminal default) |
 
+## Layout Configuration
+
+Edit `config/layout.json` to control element ordering, display mode, and notification thresholds.
+
+```json
+{
+  "mode": "verbose",
+  "order": [
+    "badge", "context", "model", "agents", "cost",
+    "elapsed", "tools", "tokens", "cpu", "memory",
+    "cwd", "branch", "remote", "behind"
+  ],
+  "compact": {
+    "exclude": ["tokens", "remote"]
+  },
+  "notifications": {
+    "cost_warn": 5.00,
+    "cost_critical": 20.00,
+    "context_warn": 70,
+    "context_critical": 90,
+    "memory_warn": 80,
+    "memory_critical": 95
+  }
+}
+```
+
+### Mode
+
+- **`verbose`** — show all elements in the configured order
+- **`compact`** — hide elements listed in `compact.exclude`
+
+### Order
+
+Rearrange the `order` array to change the left-to-right position of elements. Remove an entry to hide it entirely.
+
+### Notifications
+
+When a metric crosses its warning threshold, the value turns bold yellow. At the critical threshold, it blinks bold red. Set thresholds to `999` to effectively disable them.
+
 ## Platform Support
 
 | Platform | CPU | Memory | Agent Count | Git |
@@ -256,6 +329,9 @@ Elements that may be absent or zero are omitted:
 - Company badge: hidden if `company.text` is empty
 - Context bar: hidden if no remaining percentage provided
 - Agents: hidden when total is 0
+- Cost: hidden when $0
+- Elapsed: hidden if no timestamp found in transcript
+- Tools: hidden when count is 0
 - Tokens: hidden if no transcript path or file unreadable
 - Git branch/remote/behind: hidden when cwd is not inside a git repository
 - Commits behind: hidden when up to date (0 behind)
