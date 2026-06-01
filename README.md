@@ -8,9 +8,7 @@ A Claude Code plugin that displays a custom status line with a company badge, co
 
 ### Company Badge
 
-```
- A 
-```
+![Badge](assets/el-badge.png)
 
 A configurable company name rendered on a coloured background. Supports inline ANSI codes for per-character styling. Separated from the rest of the statusline by a space (no pipe separator).
 
@@ -18,9 +16,7 @@ A configurable company name rendered on a coloured background. Supports inline A
 
 ### Context Utilisation Bar
 
-```
-████░░░░░░ 42%
-```
+![Context Bar](assets/el-context.png)
 
 A 10-character progress bar showing how much of the context window has been consumed. The percentage accounts for a 16.5% auto-compaction buffer — the bar represents usable context, not raw remaining percentage.
 
@@ -45,9 +41,7 @@ A 10-character progress bar showing how much of the context window has been cons
 
 ### Model
 
-```
-opus 4.6
-```
+![Model](assets/el-model.png)
 
 The current Claude model name and version, parsed from the model ID (e.g. `claude-opus-4-6` becomes `opus 4.6`). Falls back to the display name if the ID format is unrecognised.
 
@@ -55,9 +49,7 @@ The current Claude model name and version, parsed from the model ID (e.g. `claud
 
 ### Agent Count
 
-```
-1/3 agents
-```
+![Agents](assets/el-agents.png)
 
 Agents dispatched this turn / total agents dispatched this session. Parsed from the session transcript file by counting `Agent` tool calls. Only shown when total is greater than zero.
 
@@ -65,9 +57,7 @@ Agents dispatched this turn / total agents dispatched this session. Parsed from 
 
 ### Tokens
 
-```
-cum 41.7M ses 25.3M i:o 442
-```
+![Tokens](assets/el-tokens.png)
 
 Three token metrics:
 
@@ -81,9 +71,7 @@ Token values are formatted as `k` (thousands) or `M` (millions). Input includes 
 
 ### CPU %
 
-```
-cpu 38%
-```
+![CPU](assets/el-cpu.png)
 
 Current system CPU utilisation, coloured with traffic-light thresholds. Platform-specific:
 - **Linux**: sampled over 100ms from `/proc/stat`
@@ -94,9 +82,7 @@ Current system CPU utilisation, coloured with traffic-light thresholds. Platform
 
 ### Memory
 
-```
-mem 7% 1.1G
-```
+![Memory](assets/el-memory.png)
 
 System memory usage as percentage and absolute GB used, coloured with traffic-light thresholds. Platform-specific:
 - **Linux**: `/proc/meminfo` (MemTotal minus MemAvailable)
@@ -107,9 +93,7 @@ System memory usage as percentage and absolute GB used, coloured with traffic-li
 
 ### Working Directory
 
-```
-myproject
-```
+![CWD](assets/el-cwd.png)
 
 Basename of the current working directory.
 
@@ -117,9 +101,7 @@ Basename of the current working directory.
 
 ### Git Branch
 
-```
-main
-```
+![Branch](assets/el-branch.png)
 
 Current HEAD branch name. Only shown when the cwd is inside a git repository.
 
@@ -127,9 +109,7 @@ Current HEAD branch name. Only shown when the cwd is inside a git repository.
 
 ### Git Remote URL
 
-```
-git@github.com:user/repo.git
-```
+![Remote](assets/el-remote.png)
 
 The `origin` remote URL. Only shown inside a git repository.
 
@@ -137,9 +117,7 @@ The `origin` remote URL. Only shown inside a git repository.
 
 ### Commits Behind
 
-```
-2 behind
-```
+![Behind](assets/el-behind.png)
 
 Number of commits the local branch is behind `origin/<branch>`. Only shown when greater than zero — indicates a `git pull` is needed.
 
