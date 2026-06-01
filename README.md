@@ -107,23 +107,23 @@ Token values are formatted as `k` (thousands) or `M` (millions). Input includes 
 
 ![CPU](assets/el-cpu.png)
 
-Current system CPU utilisation, coloured with traffic-light thresholds. Platform-specific:
+Current system CPU utilisation with an 8-reading sparkline history (`▃▅▃▄▅▆▅▄`) showing the recent trend, coloured with traffic-light thresholds. Platform-specific:
 - **Linux**: sampled over 100ms from `/proc/stat`
 - **macOS**: via `top -l 1`
 - **Windows**: via `wmic cpu get loadpercentage`
 
-**Why:** Claude Code operations (builds, tests, linters) compete for CPU with the rest of your system. Sustained high CPU can slow response times and indicates heavy background work — a signal to wait before launching more parallel agents.
+**Why:** Claude Code operations (builds, tests, linters) compete for CPU with the rest of your system. The sparkline reveals whether high CPU is a spike or sustained — a sustained plateau signals heavy background work and you should wait before launching more parallel agents.
 
 ### Memory
 
 ![Memory](assets/el-memory.png)
 
-System memory usage as percentage and absolute GB used, coloured with traffic-light thresholds. Platform-specific:
+System memory usage as percentage and absolute GB used, with an 8-reading sparkline history showing the trend, coloured with traffic-light thresholds. Platform-specific:
 - **Linux**: `/proc/meminfo` (MemTotal minus MemAvailable)
 - **macOS**: `sysctl hw.memsize` + `vm_stat`
 - **Windows**: `wmic OS get FreePhysicalMemory,TotalVisibleMemorySize`
 
-**Why:** Memory pressure causes swap thrashing which dramatically slows everything. Watching this metric helps you decide whether to close other applications or avoid memory-heavy operations like large builds or running multiple containers alongside Claude Code.
+**Why:** Memory pressure causes swap thrashing which dramatically slows everything. The sparkline shows whether memory is climbing steadily (leak or accumulation) or stable — helping you decide whether to close other applications or avoid memory-heavy operations.
 
 ### Working Directory
 
