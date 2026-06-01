@@ -10,42 +10,57 @@ const CONFIG_PATH = path.join(PLUGIN_ROOT, 'config', 'colors.json');
 const AUTO_COMPACT_BUFFER_PCT = 16.5;
 const MAX_STDIN = 1024 * 1024;
 
-function loadColors() {
+function loadColors(theme) {
+  const isLight = theme && /light/i.test(theme);
+  const esc = (code) => code ? `\x1b${code}` : '';
+  const escInline = (str) => str ? str.replace(/\[/g, '\x1b[') : '';
+
   try {
     const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-    const esc = (code) => code ? `\x1b${code}` : '';
-    const escInline = (str) => str ? str.replace(/\[/g, '\x1b[') : '';
+    const scheme = isLight ? (raw.light || raw.dark) : (raw.dark || raw.light);
     return {
       company: {
         text: escInline(raw.company?.text),
         bg: esc(raw.company?.background)
       },
-      ctxGreen: esc(raw.context_bar?.green),
-      ctxYellow: esc(raw.context_bar?.yellow),
-      ctxRed: esc(raw.context_bar?.red),
-      tokLabel: esc(raw.tokens?.label),
-      tokValue: esc(raw.tokens?.value),
-      agents: esc(raw.agents),
-      cpuLabel: esc(raw.cpu?.label),
-      cpuValue: esc(raw.cpu?.value),
-      memLabel: esc(raw.memory?.label),
-      memValue: esc(raw.memory?.value),
-      cwd: esc(raw.cwd),
-      branch: esc(raw.git_branch),
-      remote: esc(raw.git_remote),
-      behind: esc(raw.git_behind),
-      sep: esc(raw.separator),
-      reset: esc(raw.reset)
+      ctxGreen: esc(scheme.context_bar?.green),
+      ctxYellow: esc(scheme.context_bar?.yellow),
+      ctxRed: esc(scheme.context_bar?.red),
+      tokLabel: esc(scheme.tokens?.label),
+      tokValue: esc(scheme.tokens?.value),
+      agents: esc(scheme.agents),
+      cpuLabel: esc(scheme.cpu?.label),
+      cpuValue: esc(scheme.cpu?.value),
+      memLabel: esc(scheme.memory?.label),
+      memValue: esc(scheme.memory?.value),
+      cwd: esc(scheme.cwd),
+      branch: esc(scheme.git_branch),
+      remote: esc(scheme.git_remote),
+      behind: esc(scheme.git_behind),
+      sep: esc(scheme.separator),
+      reset: esc(scheme.reset)
     };
   } catch {
+    if (isLight) {
+      return {
+        company: { text: '\x1b[1;97mA\x1b[22;37mCME', bg: '\x1b[41m' },
+        ctxGreen: '\x1b[32m', ctxYellow: '\x1b[38;5;208m', ctxRed: '\x1b[1;31m',
+        tokLabel: '\x1b[90m', tokValue: '\x1b[30m',
+        agents: '\x1b[1;35m',
+        cpuLabel: '\x1b[90m', cpuValue: '\x1b[30m',
+        memLabel: '\x1b[90m', memValue: '\x1b[30m',
+        cwd: '\x1b[1;34m', branch: '\x1b[1;36m', remote: '\x1b[90m',
+        behind: '\x1b[38;5;208m', sep: '\x1b[90m', reset: '\x1b[0m'
+      };
+    }
     return {
       company: { text: '\x1b[1;97mA\x1b[22;37mCME', bg: '\x1b[41m' },
       ctxGreen: '\x1b[32m', ctxYellow: '\x1b[33m', ctxRed: '\x1b[1;31m',
       tokLabel: '\x1b[2m', tokValue: '\x1b[97m',
-      agents: '\x1b[35m',
+      agents: '\x1b[1;95m',
       cpuLabel: '\x1b[2m', cpuValue: '',
       memLabel: '\x1b[2m', memValue: '',
-      cwd: '\x1b[36m', branch: '\x1b[34m', remote: '\x1b[2m',
+      cwd: '\x1b[36m', branch: '\x1b[1;96m', remote: '\x1b[2m',
       behind: '\x1b[33m', sep: '\x1b[2m', reset: '\x1b[0m'
     };
   }
@@ -184,7 +199,8 @@ function run() {
     clearTimeout(timeout);
     try {
       const data = JSON.parse(input);
-      const c = loadColors();
+      const theme = data.output_style?.name || '';
+      const c = loadColors(theme);
       const cwd = data.workspace?.current_dir || data.cwd || process.cwd();
       const remaining = data.context_window?.remaining_percentage;
       const transcriptPath = data.transcript_path || '';

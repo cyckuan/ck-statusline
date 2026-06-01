@@ -3,28 +3,56 @@
     "text": "[1;97mA[22;37mCME",
     "background": "[41m"
   },
-  "context_bar": {
-    "green": "[32m",
-    "yellow": "[33m",
-    "red": "[1;31m"
+  "dark": {
+    "context_bar": {
+      "green": "[32m",
+      "yellow": "[33m",
+      "red": "[1;31m"
+    },
+    "tokens": {
+      "label": "[2m",
+      "value": "[97m"
+    },
+    "agents": "[1;95m",
+    "cpu": {
+      "label": "[2m",
+      "value": ""
+    },
+    "memory": {
+      "label": "[2m",
+      "value": ""
+    },
+    "cwd": "[36m",
+    "git_branch": "[1;96m",
+    "git_remote": "[2m",
+    "git_behind": "[33m",
+    "separator": "[2m",
+    "reset": "[0m"
   },
-  "tokens": {
-    "label": "[2m",
-    "value": "[97m"
-  },
-  "agents": "[1;95m",
-  "cpu": {
-    "label": "[2m",
-    "value": ""
-  },
-  "memory": {
-    "label": "[2m",
-    "value": ""
-  },
-  "cwd": "[36m",
-  "git_branch": "[34m",
-  "git_remote": "[2m",
-  "git_behind": "[33m",
-  "separator": "[2m",
-  "reset": "[0m"
+  "light": {
+    "context_bar": {
+      "green": "[32m",
+      "yellow": "[38;5;208m",
+      "red": "[1;31m"
+    },
+    "tokens": {
+      "label": "[90m",
+      "value": "[30m"
+    },
+    "agents": "[1;35m",
+    "cpu": {
+      "label": "[90m",
+      "value": "[30m"
+    },
+    "memory": {
+      "label": "[90m",
+      "value": "[30m"
+    },
+    "cwd": "[1;34m",
+    "git_branch": "[1;36m",
+    "git_remote": "[90m",
+    "git_behind": "[38;5;208m",
+    "separator": "[90m",
+    "reset": "[0m"
+  }
 }
