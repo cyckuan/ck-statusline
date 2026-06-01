@@ -1,4 +1,4 @@
-# CK Claude Code Statusline
+# [CK-CCS] Claude Code Status Line
 
 A Claude Code plugin that displays a custom status line with a company badge, context utilisation, session tokens, system metrics, and git context. Automatically switches between dark and light colour schemes. Cross-platform (Linux, macOS, Windows).
 
