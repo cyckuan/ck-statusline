@@ -1,4 +1,5 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "ck-statusline",
   "description": "Claude Code status line with context bar, model, agents, cost, elapsed time, tool count, tokens, CPU/memory sparklines, and git info",
   "owner": {
@@ -13,7 +14,9 @@
       "author": {
         "name": "cyckuan"
       },
+      "category": "productivity",
       "repository": "https://github.com/cyckuan/ck-statusline",
+      "homepage": "https://github.com/cyckuan/ck-statusline",
       "license": "MIT",
       "keywords": ["statusline", "status-bar", "context", "tokens", "cost", "sparkline", "git", "metrics", "notifications"]
     }
