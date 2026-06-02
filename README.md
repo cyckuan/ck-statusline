@@ -305,7 +305,34 @@ Then add the statusline to your `~/.claude/settings.json`:
 }
 ```
 
-### Manual install
+### From git repository
+
+Install directly from the GitHub repo:
+
+```bash
+claude plugin add --from git@github.com:cyckuan/ck-statusline.git
+```
+
+Or using HTTPS:
+
+```bash
+claude plugin add --from https://github.com/cyckuan/ck-statusline.git
+```
+
+Then add the statusline to your `~/.claude/settings.json`:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "node \"~/.claude/plugins/ck-statusline/scripts/statusline.js\""
+  }
+}
+```
+
+Restart Claude Code. The status line appears on the next session.
+
+### Manual clone
 
 1. Clone the repository:
 
