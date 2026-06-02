@@ -1,5 +1,7 @@
 ---
 description: Toggle statusline between verbose and compact mode
+allowed-tools: ["Bash"]
+argument-hint: "<more|less>"
 ---
 
 Switch the CK-CCSL statusline display mode.

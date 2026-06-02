@@ -1,5 +1,6 @@
 ---
 description: Remove the ck-statusline config from settings.json
+allowed-tools: ["Bash"]
 ---
 
 Run the uninstall script to remove the statusLine entry from ~/.claude/settings.json:
