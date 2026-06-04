@@ -1,14 +1,13 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "ck-statusline",
+  "name": "ck-claude",
   "description": "Claude Code status line with context bar, model, agents, cost, elapsed time, tool count, tokens, CPU/memory sparklines, and git info",
   "owner": {
     "name": "cyckuan"
   },
   "plugins": [
     {
-      "name": "ck-statusline",
-      "source": ".",
+      "name": "cssl",
+      "source": "./",
       "description": "Claude Code status line with context bar, model, agents, cost, elapsed time, tool count, tokens, CPU/memory sparklines, and git info. Traffic-light colours, dark/light auto-switching, configurable layout and notifications.",
       "version": "2.0.0",
       "author": {
