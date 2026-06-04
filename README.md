@@ -258,7 +258,7 @@ Edit `config/layout.json` to control element ordering, display mode, and notific
 - **`verbose`** — show all elements in the configured order
 - **`compact`** — hide elements listed in `compact.exclude`
 
-Toggle mid-session with `/ccsl more` or `/ccsl less`.
+Toggle mid-session with `/cssl more` or `/cssl less`.
 
 ![Verbose vs Compact](assets/modes.png)
 
@@ -355,12 +355,12 @@ git clone git@github.com:cyckuan/ck-statusline.git ~/.claude/plugins/local/ck-st
 
 ## Commands
 
-### `/ccsl more` / `/ccsl less`
+### `/cssl more` / `/cssl less`
 
 Toggle between verbose and compact display modes mid-session:
 
-- **`/ccsl more`** — verbose mode, shows all elements
-- **`/ccsl less`** — compact mode, hides elements listed in `compact.exclude` (default: `tokens`, `remote`)
+- **`/cssl more`** — verbose mode, shows all elements
+- **`/cssl less`** — compact mode, hides elements listed in `compact.exclude` (default: `tokens`, `remote`)
 
 The change takes effect on the next statusline refresh.
 
@@ -396,7 +396,7 @@ This plugin adds **near-zero token overhead** to your sessions.
 |-----------|------|------------|
 | Status line | Every refresh | **0** — runs as a shell command outside the LLM context |
 | Command registration | Session start | ~50 input tokens (command names/descriptions in system prompt) |
-| `/ccsl more` or `/ccsl less` | On invocation | ~200 input + ~50 output tokens |
+| `/cssl more` or `/cssl less` | On invocation | ~200 input + ~50 output tokens |
 | `/uninstall-statusline` | On invocation | ~150 input + ~50 output tokens |
 
 The status line itself is executed by the Claude Code harness — it pipes session metadata to `node statusline.js` via stdin and renders the output directly in the terminal. The LLM never sees it.

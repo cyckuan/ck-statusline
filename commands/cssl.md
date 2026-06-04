@@ -7,8 +7,8 @@ argument-hint: "<more|less>"
 Switch the CK-CCSL statusline display mode.
 
 Usage:
-- `/ccsl more` — switch to verbose mode (show all elements)
-- `/ccsl less` — switch to compact mode (hide elements listed in compact.exclude)
+- `/cssl more` — switch to verbose mode (show all elements)
+- `/cssl less` — switch to compact mode (hide elements listed in compact.exclude)
 
 Run the following to update the layout config:
 
