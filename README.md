@@ -291,7 +291,7 @@ When a metric crosses its warning threshold, the value turns bold yellow. At the
 
 ```
 /plugin marketplace add cyckuan/ck-statusline
-/plugin install cssl@ck-claude
+/plugin install cssl@ck-statusline
 ```
 
 Then add the statusline to your `~/.claude/settings.json`:
@@ -300,7 +300,7 @@ Then add the statusline to your `~/.claude/settings.json`:
 {
   "statusLine": {
     "type": "command",
-    "command": "node \"~/.claude/plugins/marketplaces/ck-claude/scripts/statusline.js\""
+    "command": "node \"~/.claude/plugins/marketplaces/ck-statusline/scripts/statusline.js\""
   }
 }
 ```
@@ -373,7 +373,7 @@ Run the `/uninstall-statusline` slash command.
 **From the terminal (marketplace install):**
 
 ```bash
-node ~/.claude/plugins/marketplaces/ck-claude/scripts/uninstall.js
+node ~/.claude/plugins/marketplaces/ck-statusline/scripts/uninstall.js
 ```
 
 **From the terminal (manual install):**
@@ -385,7 +385,7 @@ node ~/.claude/plugins/local/ck-statusline/scripts/uninstall.js
 Both methods remove the `statusLine` entry from `~/.claude/settings.json`, reverting to no status line. To fully remove the plugin, also run:
 
 ```
-/plugin marketplace remove ck-claude
+/plugin marketplace remove ck-statusline
 ```
 
 ## Token Cost

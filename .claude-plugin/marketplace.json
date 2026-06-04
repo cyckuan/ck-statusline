@@ -1,5 +1,5 @@
 {
-  "name": "ck-claude",
+  "name": "ck-statusline",
   "description": "Claude Code status line with context bar, model, agents, cost, elapsed time, tool count, tokens, CPU/memory sparklines, and git info",
   "owner": {
     "name": "cyckuan"
