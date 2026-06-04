@@ -388,6 +388,23 @@ Both methods remove the `statusLine` entry from `~/.claude/settings.json`, rever
 /plugin marketplace remove ck-statusline
 ```
 
+## Token Cost
+
+This plugin adds **near-zero token overhead** to your sessions.
+
+| Component | When | Token cost |
+|-----------|------|------------|
+| Status line | Every refresh | **0** — runs as a shell command outside the LLM context |
+| Command registration | Session start | ~50 input tokens (command names/descriptions in system prompt) |
+| `/ccsl more` or `/ccsl less` | On invocation | ~200 input + ~50 output tokens |
+| `/uninstall-statusline` | On invocation | ~150 input + ~50 output tokens |
+
+The status line itself is executed by the Claude Code harness — it pipes session metadata to `node statusline.js` via stdin and renders the output directly in the terminal. The LLM never sees it.
+
+The only recurring cost is ~50 tokens per conversation turn for the two command descriptions in the system prompt. The slash commands themselves are one-shot costs that only occur when you explicitly invoke them.
+
+This plugin has no hooks, no agents, and no skills — nothing that injects into the LLM context on every turn or tool call.
+
 ## Conditional Display
 
 Elements that may be absent or zero are omitted:
