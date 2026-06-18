@@ -3,6 +3,7 @@
 ## TODO
 
 ## COMPLETED
+- [x] Make git remote URL element clickable (plain full URL text, brighter bold blue) — Claude statusline strips OSC 8, so rely on terminal URL-regex linkify
 - [x] Rename command ccsl -> cssl to fix cssl/ccsl namespace collision; update README refs
 - [x] Add token cost section to README explaining plugin overhead
 - [x] Rename marketplace to ck-claude, fix plugin source path, repoint README install refs

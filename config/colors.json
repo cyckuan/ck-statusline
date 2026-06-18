@@ -27,7 +27,7 @@
     },
     "cwd": "[36m",
     "git_branch": "[1;96m",
-    "git_remote": "[2m",
+    "git_remote": "[1;94m",
     "git_behind": "[33m",
     "separator": "[2m",
     "reset": "[0m"
@@ -56,7 +56,7 @@
     },
     "cwd": "[1;34m",
     "git_branch": "[1;36m",
-    "git_remote": "[90m",
+    "git_remote": "[1;34m",
     "git_behind": "[38;5;208m",
     "separator": "[90m",
     "reset": "[0m"

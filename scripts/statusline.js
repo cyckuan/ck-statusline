@@ -117,7 +117,7 @@ function loadColors(theme) {
         agents: '\x1b[1;35m',
         cpuLabel: '\x1b[90m', cpuValue: '\x1b[30m',
         memLabel: '\x1b[90m', memValue: '\x1b[30m',
-        cwd: '\x1b[1;34m', branch: '\x1b[1;36m', remote: '\x1b[90m',
+        cwd: '\x1b[1;34m', branch: '\x1b[1;36m', remote: '\x1b[1;34m',
         behind: '\x1b[38;5;208m', sep: '\x1b[90m', reset: '\x1b[0m'
       };
     }
@@ -130,7 +130,7 @@ function loadColors(theme) {
       agents: '\x1b[1;95m',
       cpuLabel: '\x1b[2m', cpuValue: '',
       memLabel: '\x1b[2m', memValue: '',
-      cwd: '\x1b[36m', branch: '\x1b[1;96m', remote: '\x1b[2m',
+      cwd: '\x1b[36m', branch: '\x1b[1;96m', remote: '\x1b[1;94m',
       behind: '\x1b[33m', sep: '\x1b[2m', reset: '\x1b[0m'
     };
   }
@@ -562,8 +562,11 @@ function run() {
       elements.branch = branch ? `${c.branch}${branch}${c.reset}` : null;
 
       if (remote) {
-        const link = remote.url ? `\x1b]8;;${remote.url}\x07${remote.name}\x1b]8;;\x07` : remote.name;
-        elements.remote = `${c.remote}${link}${c.reset}`;
+        // Claude Code's statusline strips OSC 8 hyperlinks, so show the full URL
+        // as visible text — terminals (Tabby, etc.) linkify it via URL regex,
+        // giving a clickable link with hover underline that opens the repo.
+        const text = remote.url || remote.name;
+        elements.remote = `${c.remote}${text}${c.reset}`;
       } else {
         elements.remote = null;
       }
